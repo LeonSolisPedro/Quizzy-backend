@@ -1,12 +1,12 @@
 import express from "express"
 import cors from "cors"
-import context from "./Entites/AppDbContext.mjs"
-import { Book } from "./Entites/Book.mjs";
+import context from "./Entites/AppDbContext"
+import { Book } from "./Entites/Book";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-await context.initialize();
+context.initialize();
 
 
 app.get("/", async (req, res) => {

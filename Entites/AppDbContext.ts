@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
-import { Book } from "./Book.mjs"
+import { Book } from "./Book"
 
 
 const AppDbContext = new DataSource({
