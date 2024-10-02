@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import context from "./Entites/AppDbContext"
 import { Book } from "./Entites/Book";
+import { Cover } from "./Entites/Cover";
 
 const app = express();
 app.use(cors());
@@ -10,12 +11,19 @@ context.initialize();
 
 
 app.get("/", async (req, res) => {
-  const book = {
-    name: "Book1"
-  }
+  const repo1 = context.getRepository(Book)
+  const repo2 = context.getRepository(Cover)
 
-  const repo = context.getRepository(Book)
-  await repo.save(book)
+
+  const book  = {
+    name: "Book1",
+  }
+  const cover = {
+    synopsis: "This is the Synopsis",
+    book: book
+  }
+  await repo1.save(book)
+  await repo2.save(cover)
   return res.json(book)
 })
 
