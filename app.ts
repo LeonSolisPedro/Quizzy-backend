@@ -1,11 +1,12 @@
 import express from "express"
 import cors from "cors"
 import context from "./Entites/AppDbContext"
+import AppDbSeeder from "./Entites/AppDbSeeder"
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-context.initialize();
+context.initialize().then(x => AppDbSeeder.SeedAsync(x))
 
 
 app.get("/", async (req, res) => {

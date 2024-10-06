@@ -11,6 +11,7 @@ import { Answer } from "./Answer"
 import { Like } from "./Like"
 import { Comment } from "./Comment"
 import { AllowedUser } from "./AllowedUser"
+import { Initial1728245048402 } from "./Migrations/1728245048402-Initial"
 
 
 const AppDbContext = new DataSource({
@@ -21,8 +22,9 @@ const AppDbContext = new DataSource({
   password: "",
   database: "quizzy",
   entities: [Question, Quizz, User, Topic, QuizzTag, Tag, UserResponse, Answer, Like, Comment, AllowedUser],
-  synchronize: true,
+  synchronize: false,
   logging: true,
+  migrations: [Initial1728245048402],
 })
 
 export default AppDbContext
