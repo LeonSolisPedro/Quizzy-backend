@@ -67,6 +67,7 @@ export default abstract class AppDbSeeder {
     const quizzTag2: QuizzTag = { id: 0, quizzId: 0,quizz: quizz1, tagId: 0,tag: tag2, order: 2 };
     await repoQuizzTag.save([quizzTag1, quizzTag2])
 
+    //Creating questions
     const question1: Question =  {
       id: 0,
       typeOfQuestion: TypeOfQuestion.SINGLELINE,
