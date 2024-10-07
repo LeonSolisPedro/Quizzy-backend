@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import context from "./Entites/AppDbContext"
 import AppDbSeeder from "./Entites/AppDbSeeder"
+import { User } from "./Entites/User";
 
 const app = express();
 app.use(cors());
@@ -10,7 +11,20 @@ context.initialize().then(x => AppDbSeeder.SeedAsync(x))
 
 
 app.get("/", async (req, res) => {
-  res.send("Hello world!")
+  const repoUser = context.getRepository(User)
+  const user = await repoUser.find(
+    {
+      relations: {
+        quizzes: {
+          topic: true,
+          questions: true,
+          quizzTags: {
+            tag: true
+          }
+        }
+      }
+    })
+  return res.status(200).json(user)
 })
 
 

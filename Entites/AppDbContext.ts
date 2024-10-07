@@ -11,8 +11,7 @@ import { Answer } from "./Answer"
 import { Like } from "./Like"
 import { Comment } from "./Comment"
 import { AllowedUser } from "./AllowedUser"
-import { Initial1728248658862 } from "./Migrations/1728248658862-Initial"
-
+import { Initial1728263452642 } from "./Migrations/1728263452642-Initial"
 
 const AppDbContext = new DataSource({
   type: "mysql",
@@ -24,7 +23,7 @@ const AppDbContext = new DataSource({
   entities: [Question, Quizz, User, Topic, QuizzTag, Tag, UserResponse, Answer, Like, Comment, AllowedUser],
   synchronize: false,
   logging: true,
-  migrations: [Initial1728248658862],
+  migrations: [Initial1728263452642],
 })
 
 export default AppDbContext

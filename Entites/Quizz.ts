@@ -23,7 +23,7 @@ export class Quizz {
   @ManyToOne(() => User, (user) => user.quizzes)
   user?: User
 
-  @Column()
+  @Column({ nullable: true })
   lastEditedAdminId?: number;
 
   @ManyToOne(() => User)

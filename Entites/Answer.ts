@@ -26,7 +26,7 @@ export class Answer {
   @Column()
   answerCheckbox: boolean
 
-  @Column()
+  @Column({ nullable: true })
   lastEditedAdminId?: number;
 
   @ManyToOne(() => User)

@@ -8,12 +8,6 @@ export class Topic {
   id: number
 
   @Column()
-  userId: number
-
-  @ManyToOne(() => User)
-  user?: User
-
-  @Column()
   name: string
 
   @OneToMany(() => Quizz, (quizz) => quizz.topic)

@@ -23,7 +23,7 @@ export class Question {
   description: string
 
   @Column()
-  visiableAtTable: boolean
+  visibleAtTable: boolean
 
   @Column()
   quizzId: number;
@@ -31,7 +31,7 @@ export class Question {
   @ManyToOne(() => Quizz, (quizz) => quizz.questions)
   quizz?: Quizz
 
-  @Column()
+  @Column({ nullable: true })
   lastEditedAdminId?: number;
 
   @ManyToOne(() => User)

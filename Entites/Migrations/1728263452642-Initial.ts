@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Initial1728248658862 implements MigrationInterface {
-    name = 'Initial1728248658862'
+export class Initial1728263452642 implements MigrationInterface {
+    name = 'Initial1728263452642'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -11,7 +11,7 @@ export class Initial1728248658862 implements MigrationInterface {
                 \`questionId\` int NOT NULL,
                 \`answer\` varchar(255) NOT NULL,
                 \`answerCheckbox\` tinyint NOT NULL,
-                \`lastEditedAdminId\` int NOT NULL,
+                \`lastEditedAdminId\` int NULL,
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -40,7 +40,6 @@ export class Initial1728248658862 implements MigrationInterface {
         await queryRunner.query(`
             CREATE TABLE \`topic\` (
                 \`id\` int NOT NULL AUTO_INCREMENT,
-                \`userId\` int NOT NULL,
                 \`name\` varchar(255) NOT NULL,
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
@@ -94,7 +93,7 @@ export class Initial1728248658862 implements MigrationInterface {
                 \`id\` int NOT NULL AUTO_INCREMENT,
                 \`title\` varchar(255) NOT NULL,
                 \`userId\` int NOT NULL,
-                \`lastEditedAdminId\` int NOT NULL,
+                \`lastEditedAdminId\` int NULL,
                 \`description\` varchar(255) NOT NULL,
                 \`descriptionPlain\` varchar(255) NOT NULL,
                 \`imageURL\` varchar(255) NOT NULL,
@@ -110,9 +109,9 @@ export class Initial1728248658862 implements MigrationInterface {
                 \`typeOfQuestion\` enum ('0', '1', '2', '3') NOT NULL DEFAULT '0',
                 \`title\` varchar(255) NOT NULL,
                 \`description\` varchar(255) NOT NULL,
-                \`visiableAtTable\` tinyint NOT NULL,
+                \`visibleAtTable\` tinyint NOT NULL,
                 \`quizzId\` int NOT NULL,
-                \`lastEditedAdminId\` int NOT NULL,
+                \`lastEditedAdminId\` int NULL,
                 \`order\` int NOT NULL,
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
@@ -136,10 +135,6 @@ export class Initial1728248658862 implements MigrationInterface {
         await queryRunner.query(`
             ALTER TABLE \`user_response\`
             ADD CONSTRAINT \`FK_b5f0fe0120330968e5e8089e147\` FOREIGN KEY (\`quizzId\`) REFERENCES \`quizz\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-        await queryRunner.query(`
-            ALTER TABLE \`topic\`
-            ADD CONSTRAINT \`FK_106101142fbf646320c4d7ae231\` FOREIGN KEY (\`userId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
         await queryRunner.query(`
             ALTER TABLE \`quizz_tag\`
@@ -234,9 +229,6 @@ export class Initial1728248658862 implements MigrationInterface {
         `);
         await queryRunner.query(`
             ALTER TABLE \`quizz_tag\` DROP FOREIGN KEY \`FK_c6de5be784511b2491c4593a53b\`
-        `);
-        await queryRunner.query(`
-            ALTER TABLE \`topic\` DROP FOREIGN KEY \`FK_106101142fbf646320c4d7ae231\`
         `);
         await queryRunner.query(`
             ALTER TABLE \`user_response\` DROP FOREIGN KEY \`FK_b5f0fe0120330968e5e8089e147\`
