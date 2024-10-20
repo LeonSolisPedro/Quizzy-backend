@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Initial1728263452642 implements MigrationInterface {
-    name = 'Initial1728263452642'
+export class Initial1729465384528 implements MigrationInterface {
+    name = 'Initial1729465384528'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -29,11 +29,14 @@ export class Initial1728263452642 implements MigrationInterface {
             CREATE TABLE \`user\` (
                 \`id\` int NOT NULL AUTO_INCREMENT,
                 \`name\` varchar(255) NOT NULL,
+                \`email\` varchar(255) NOT NULL,
+                \`password\` varchar(255) NOT NULL,
                 \`isAdmin\` tinyint NOT NULL,
                 \`URLImage\` varchar(255) NOT NULL,
                 \`settingDarkMode\` enum ('0', '1', '2') NOT NULL DEFAULT '0',
                 \`preferredLanguage\` enum ('0', '1') NOT NULL DEFAULT '0',
                 \`isBlocked\` tinyint NOT NULL,
+                UNIQUE INDEX \`IDX_e12875dfb3b1d92d7d7c5377e2\` (\`email\`),
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -100,6 +103,7 @@ export class Initial1728263452642 implements MigrationInterface {
                 \`topicId\` int NOT NULL,
                 \`accessStatus\` enum ('0', '1') NOT NULL DEFAULT '0',
                 \`acceptMultipleAnswers\` tinyint NOT NULL,
+                \`creationDate\` timestamp NOT NULL,
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -268,6 +272,9 @@ export class Initial1728263452642 implements MigrationInterface {
         `);
         await queryRunner.query(`
             DROP TABLE \`topic\`
+        `);
+        await queryRunner.query(`
+            DROP INDEX \`IDX_e12875dfb3b1d92d7d7c5377e2\` ON \`user\`
         `);
         await queryRunner.query(`
             DROP TABLE \`user\`

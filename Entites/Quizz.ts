@@ -71,4 +71,7 @@ export class Quizz {
 
   @OneToMany(() => AllowedUser, (allowedUser) => allowedUser.quizz)
   allowedUsers?: AllowedUser[]
+
+  @Column({ type: 'timestamp' })
+  creationDate: Date;
 }

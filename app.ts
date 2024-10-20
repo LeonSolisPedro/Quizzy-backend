@@ -11,20 +11,7 @@ context.initialize().then(x => AppDbSeeder.SeedAsync(x))
 
 
 app.get("/", async (req, res) => {
-  const repoUser = context.getRepository(User)
-  const user = await repoUser.find(
-    {
-      relations: {
-        quizzes: {
-          topic: true,
-          questions: true,
-          quizzTags: {
-            tag: true
-          }
-        }
-      }
-    })
-  return res.status(200).json(user)
+  res.send("Hello world!")
 })
 
 

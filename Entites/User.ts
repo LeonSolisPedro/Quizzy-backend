@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Language, SettingDarkMode } from "../Enums/Enums";
 import { Quizz } from "./Quizz";
 import { UserResponse } from "./UserResponse";
@@ -11,6 +11,12 @@ export class User {
 
   @Column()
   name: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  password: string;
 
   @Column()
   isAdmin: boolean;

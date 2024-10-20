@@ -6,6 +6,7 @@ import { Topic } from "./Topic";
 import { Tag } from "./Tag";
 import { QuizzTag } from "./QuizzTag";
 import { Question } from "./Question";
+import bcrypt from "bcrypt"
 
 
 export default abstract class AppDbSeeder {
@@ -27,6 +28,8 @@ export default abstract class AppDbSeeder {
     const user1: User = {
       id: 0,
       name: "Pedro León",
+      email: "pedro@wintercr.com",
+      password: await bcrypt.hash("pedro@wintercr.com", 10),
       isAdmin: true,
       URLImage: "https://cdn.pfps.gg/pfps/8302-beluga.png",
       settingDarkMode: SettingDarkMode.AUTO,
@@ -54,6 +57,7 @@ export default abstract class AppDbSeeder {
       topic: topic3,
       accessStatus: AccessStatus.PUBLIC,
       acceptMultipleAnswers: true,
+      creationDate: new Date(Date.now()),
     }
     await repoQuizz.save(quizz1)
 
