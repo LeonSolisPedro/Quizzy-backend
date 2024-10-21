@@ -3,10 +3,11 @@ import cors from "cors"
 import context from "./Entites/AppDbContext"
 import AppDbSeeder from "./Entites/AppDbSeeder"
 import { User } from "./Entites/User";
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 import validation from "./validation";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import { Quizz } from "./Entites/Quizz";
 
 const app = express();
 app.use(cors());
@@ -25,7 +26,12 @@ app.post("/api/login", [
   const { email, password } = req.body;
   try {
     const repoUser = context.getRepository(User)
-    const user = await repoUser.findOneBy({email})
+    // https://stackoverflow.com/a/68690787/20961125
+    const user = await repoUser
+    .createQueryBuilder('user')
+    .addSelect('user.password')
+    .where('user.email = :email', { email })
+    .getOne();
     if (user === null)
       return res.status(401).json({ message: 'Invalid credentials' })
     if(user.isBlocked)
@@ -60,6 +66,20 @@ app.post('/api/register', [
   }
   res.status(200).json({user})
 });
+
+//Gets the quizz, exclusive for responding it
+app.get("/api/getRespondingQuizz/:id", [
+  param("id").isNumeric()
+], validation, async (req, res) => {
+  const { id } = req.params
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz = await repoQuizz.findOne({
+    where: {id},
+    relations: {topic: true, quizzTags: { tag: true }, questions: true}
+  })
+  if(quizz == null) return res.status(404).send()
+  return res.status(200).json({quizz})
+})
 
 
 const port = 8080;
