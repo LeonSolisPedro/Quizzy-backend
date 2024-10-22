@@ -181,9 +181,37 @@ app.get("/api/myanswers/:id", [
   return res.status(200).json(response.quizz)
 })
 
+
+//Get the latest quizzes
+app.get("/api/welcome/getLatest", async (req, res) => {
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz = await repoQuizz.find({
+    order: { creationDate: "ASC" },
+    relations: {user: true},
+    take: 6
+  })
+  return res.status(200).json(quizz)
+})
+
+//Get popular quizzes
+app.get("/api/welcome/getPopular", async (req, res) => {
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz = await repoQuizz.find({
+    where: {questions: {visibleAtTable: true}},
+    relations: {questions: true,userResponses: true, likes: true}
+  })
+  quizz.sort((a, b) => {
+    return  a.userResponses.length < b.userResponses.length ? 1 : -1;
+  })
+  const newQuizz = quizz.slice(0, 4)
+  return res.status(200).json(newQuizz)
+})
+
 //Gets popular tags
 app.get("/api/welcome/getTags", async (req, res) => {
   const repoTags = context.getRepository(Tag)
+  const tags = await repoTags.find()
+  return res.status(200).json(tags)
 })
 
 
