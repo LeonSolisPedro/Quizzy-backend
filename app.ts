@@ -83,7 +83,7 @@ app.get("/api/welcome/getQuizz/:id", [
     relations: { topic: true, quizzTags: { tag: true }, questions: true }
   })
   if (quizz == null) return res.status(404).send()
-  return res.status(200).json({ quizz })
+  return res.status(200).json(quizz)
 })
 
 //Gets the quizz, exclusive for responding view
@@ -99,7 +99,7 @@ app.get("/api/responding/getQuizz/:id", [
   const token = req.headers['authorization']?.split(' ')[1];
   const userId = token ? jwt.verify(token, 'fantastic-and-cool-key').id : 0;
   const eligible = await eligibility(quizz, userId)
-  return res.status(200).json({quizz, eligible})
+  return res.status(200).json({ quizz, eligible })
 })
 
 
@@ -116,8 +116,8 @@ app.post("/api/responding/quizz/:id", [
     relations: { allowedUsers: true }
   })
   const response = await eligibility(quizz, req.user.id)
-  if(!response.permission) return res.status(401).json({ message: "You don't have permissions to respond" });
-  if(response.responded) return res.status(422).json({ message: "You can only respond once" });
+  if (!response.permission) return res.status(401).json({ message: "You don't have permissions to respond" });
+  if (response.responded) return res.status(422).json({ message: "You can only respond once" });
   try {
     const repoResponse = context.getRepository(UserResponse)
     const repoAnswer = context.getRepository(Answer)
@@ -140,7 +140,7 @@ app.post("/api/responding/quizz/:id", [
 
 const eligibility = async (quizz, userId) => {
   const repoResponse = context.getRepository(UserResponse)
-  if(quizz == null) return { permission: false, responded: false };
+  if (quizz == null) return { permission: false, responded: false };
   if (quizz.accessStatus === AccessStatus.PRIVATE) {
     const isAllowed = quizz.allowedUsers.some(x => x.userId == userId)
     if (!isAllowed) return { permission: false, responded: false };
@@ -149,9 +149,37 @@ const eligibility = async (quizz, userId) => {
     const exists = await repoResponse.existsBy({ quizzId: quizz.id, userId })
     if (exists) return { permission: true, responded: true };
   }
-  return {permission: true, responded: false}
+  return { permission: true, responded: false }
 }
 
+
+//Gets my answers
+app.get("/api/myanswers", authorize, async (req, res) => {
+  const repoResponse = context.getRepository(UserResponse)
+  const responses = await repoResponse.find({
+    where: { userId: req.user.id },
+    relations: { quizz: true }
+  })
+  return res.status(200).json(responses)
+})
+
+//Gets specific answer
+app.get("/api/myanswers/:id", [
+  param("id").isNumeric()
+], validation, authorize, async (req, res) => {
+  const { id } = req.params
+  const repoResponse = context.getRepository(UserResponse)
+  const response = await repoResponse.findOne({
+    where: { id, userId: req.user.id },
+    relations: {quizz: {topic: true, quizzTags: { tag: true }, questions: true }, answers: true}
+  })
+  if (response == null) return res.status(404).send();
+  const newQuestions = response.quizz.questions.map(x => ({ ...x,
+    answer: response.answers.find(y=> y.questionId === x.id)
+  }))
+  response.quizz.questions = newQuestions;
+  return res.status(200).json(response.quizz)
+})
 
 //Gets popular tags
 app.get("/api/welcome/getTags", async (req, res) => {
