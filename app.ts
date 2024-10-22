@@ -8,6 +8,11 @@ import validation from "./validation";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { Quizz } from "./Entites/Quizz";
+import { Tag } from "./Entites/Tag";
+import authorize from "./authorize";
+import { AccessStatus } from "./Enums/Enums";
+import { UserResponse } from "./Entites/UserResponse";
+import { Answer } from "./Entites/Answer";
 
 const app = express();
 app.use(cors());
@@ -28,13 +33,13 @@ app.post("/api/login", [
     const repoUser = context.getRepository(User)
     // https://stackoverflow.com/a/68690787/20961125
     const user = await repoUser
-    .createQueryBuilder('user')
-    .addSelect('user.password')
-    .where('user.email = :email', { email })
-    .getOne();
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
     if (user === null)
       return res.status(401).json({ message: 'Invalid credentials' })
-    if(user.isBlocked)
+    if (user.isBlocked)
       return res.status(401).json({ message: 'Your account is blocked, please contact pedro@wintercr.com' })
     const match = await bcrypt.compare(password, user.password);
     if (!match)
@@ -64,21 +69,93 @@ app.post('/api/register', [
     if (error.code === "ER_DUP_ENTRY") return res.status(500).json({ message: 'Email is already taken' });
     return res.status(500).json({ message: 'An error occured' });
   }
-  res.status(200).json({user})
+  res.status(200).json({ user })
 });
 
-//Gets the quizz, exclusive for responding it
-app.get("/api/getRespondingQuizz/:id", [
+//Gets the quizz, exclusive for welcome page
+app.get("/api/welcome/getQuizz/:id", [
   param("id").isNumeric()
 ], validation, async (req, res) => {
   const { id } = req.params
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.findOne({
-    where: {id},
-    relations: {topic: true, quizzTags: { tag: true }, questions: true}
+    where: { id },
+    relations: { topic: true, quizzTags: { tag: true }, questions: true }
   })
-  if(quizz == null) return res.status(404).send()
-  return res.status(200).json({quizz})
+  if (quizz == null) return res.status(404).send()
+  return res.status(200).json({ quizz })
+})
+
+//Gets the quizz, exclusive for responding view
+app.get("/api/responding/getQuizz/:id", [
+  param("id").isNumeric()
+], validation, async (req, res) => {
+  const { id } = req.params
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz = await repoQuizz.findOne({
+    where: { id },
+    relations: { topic: true, quizzTags: { tag: true }, questions: true, allowedUsers: true }
+  })
+  const token = req.headers['authorization']?.split(' ')[1];
+  const userId = token ? jwt.verify(token, 'fantastic-and-cool-key').id : 0;
+  const eligible = await eligibility(quizz, userId)
+  return res.status(200).json({quizz, eligible})
+})
+
+
+//Sets the answers of responding views
+app.post("/api/responding/quizz/:id", [
+  param("id").isNumeric(),
+  body("answers").notEmpty()
+], validation, authorize, async (req, res) => {
+  const quizzId = req.params.id
+  let { answers } = req.body
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz = await repoQuizz.findOne({
+    where: { id: quizzId },
+    relations: { allowedUsers: true }
+  })
+  const response = await eligibility(quizz, req.user.id)
+  if(!response.permission) return res.status(401).json({ message: "You don't have permissions to respond" });
+  if(response.responded) return res.status(422).json({ message: "You can only respond once" });
+  try {
+    const repoResponse = context.getRepository(UserResponse)
+    const repoAnswer = context.getRepository(Answer)
+    const userResponse: UserResponse = {
+      id: 0,
+      responseDate: new Date(),
+      userId: req.user.id,
+      quizzId: quizz.id,
+      Score: 0
+    }
+    await repoResponse.save(userResponse)
+    answers = answers.map(x => ({ ...x, userResponse }))
+    await repoAnswer.save(answers)
+  } catch (error) {
+    return res.status(500).json({ message: "An error has ocurred" });
+  }
+  return res.status(200).send()
+})
+
+
+const eligibility = async (quizz, userId) => {
+  const repoResponse = context.getRepository(UserResponse)
+  if(quizz == null) return { permission: false, responded: false };
+  if (quizz.accessStatus === AccessStatus.PRIVATE) {
+    const isAllowed = quizz.allowedUsers.some(x => x.userId == userId)
+    if (!isAllowed) return { permission: false, responded: false };
+  }
+  if (quizz.acceptMultipleAnswers == false) {
+    const exists = await repoResponse.existsBy({ quizzId: quizz.id, userId })
+    if (exists) return { permission: true, responded: true };
+  }
+  return {permission: true, responded: false}
+}
+
+
+//Gets popular tags
+app.get("/api/welcome/getTags", async (req, res) => {
+  const repoTags = context.getRepository(Tag)
 })
 
 
