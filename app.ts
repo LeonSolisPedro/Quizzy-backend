@@ -214,6 +214,21 @@ app.get("/api/welcome/getTags", async (req, res) => {
   return res.status(200).json(tags)
 })
 
+//Get quizzes by tag
+app.get("/api/welcome/getTag/:id", [
+  param("id").isNumeric()
+], validation,async (req, res) => {
+  const { id } = req.params
+  const repoTag = context.getRepository(Tag)
+  const tag = await repoTag.findOneBy({id})
+  if (tag == null) return res.status(404).send()
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz = await repoQuizz.find({
+    where: {quizzTags: {tagId: id},questions: {visibleAtTable: true}},
+    relations: {questions: true,userResponses: true, likes: true, quizzTags: true}
+  })
+  return res.status(200).json({quizz, tag })
+})
 
 const port = 8080;
 app.listen(port, () => {
