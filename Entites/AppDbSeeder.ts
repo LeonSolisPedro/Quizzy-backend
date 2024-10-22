@@ -91,7 +91,7 @@ export default abstract class AppDbSeeder {
       visibleAtTable: true,
       quizzId: 0,
       quizz: quizz1,
-      order: 1
+      order: 2
     }
     await repoQuestion.save([question1, question2])
   }
