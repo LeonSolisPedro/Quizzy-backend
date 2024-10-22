@@ -24,4 +24,13 @@ const authorize = async (req, res, next) => {
   }
 };
 
+
+const checkAdmin = async (req, res, next) => {
+  const repoUser = context.getRepository(User)
+  const user = await repoUser.findOneBy({id: req.user.id})
+  if(!user.isAdmin) return res.status(401).send();
+  next()
+}
+
+export {checkAdmin}
 export default authorize;
