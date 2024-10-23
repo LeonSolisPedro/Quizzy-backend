@@ -5,4 +5,4 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 EXPOSE 8080
-CMD ["node", "app.mjs"]
+CMD ["npm", "run", "serve"]
