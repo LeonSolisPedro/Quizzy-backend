@@ -20,10 +20,15 @@ import { QuizzTag } from "./Entites/QuizzTag";
 import { AllowedUser } from "./Entites/AllowedUser";
 
 const app = express();
+const port = 8080;
 app.use(cors());
 app.use(express.json());
-context.initialize().then(x => AppDbSeeder.SeedAsync(x))
-
+context.initialize().then(async x => {
+  await AppDbSeeder.SeedAsync(x)
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+})
 
 app.get("/", async (req, res) => {
   res.send("Hello world!")
@@ -440,7 +445,4 @@ app.post("/api/myquizzes/create", authorize, async (req, res) => {
   return res.status(200).json(quizz1)
 })
 
-const port = 8080;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+
