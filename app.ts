@@ -15,6 +15,9 @@ import { UserResponse } from "./Entites/UserResponse";
 import { Answer } from "./Entites/Answer";
 import { In } from "typeorm";
 import { Topic } from "./Entites/Topic";
+import { Question } from "./Entites/Question";
+import { QuizzTag } from "./Entites/QuizzTag";
+import { AllowedUser } from "./Entites/AllowedUser";
 
 const app = express();
 app.use(cors());
@@ -81,7 +84,7 @@ app.get("/api/welcome/getQuizz/:id", [
   const { id } = req.params
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.findOne({
-    order: {questions: {order: "ASC"}},
+    order: { questions: { order: "ASC" } },
     where: { id },
     relations: { topic: true, quizzTags: { tag: true }, questions: true }
   })
@@ -173,7 +176,7 @@ app.get("/api/myanswers/:id", [
   const { id } = req.params
   const repoResponse = context.getRepository(UserResponse)
   const response = await repoResponse.findOne({
-    order: {quizz: {questions: {order: "ASC"}}},
+    order: { quizz: { questions: { order: "ASC" } } },
     where: { id, userId: req.user.id },
     relations: { quizz: { topic: true, quizzTags: { tag: true }, questions: true }, answers: true }
   })
@@ -202,7 +205,6 @@ app.get("/api/welcome/getLatest", async (req, res) => {
 app.get("/api/welcome/getPopular", async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.find({
-    where: { questions: { visibleAtTable: true } },
     relations: { questions: true, userResponses: true, likes: true }
   })
   quizz.sort((a, b) => {
@@ -229,7 +231,7 @@ app.get("/api/welcome/getTag/:id", [
   if (tag == null) return res.status(404).send()
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.find({
-    where: { quizzTags: { tagId: id }, questions: { visibleAtTable: true } },
+    where: { quizzTags: { tagId: id } },
     relations: { questions: true, userResponses: true, likes: true, quizzTags: true }
   })
   return res.status(200).json({ quizz, tag })
@@ -245,35 +247,35 @@ app.get("/api/users", authorize, checkAdmin, async (req, res) => {
 
 
 //Handles delete of user
-app.delete("/api/users/:id", [param("id").isNumeric()], validation,authorize, checkAdmin, async (req, res) => {
+app.delete("/api/users/:id", [param("id").isNumeric()], validation, authorize, checkAdmin, async (req, res) => {
   const { id } = req.params
   try {
-    const idsResponse = (await context.manager.findBy(UserResponse, {userId: id})).map(x => x.id)
-    const idsAnswers = (await context.manager.find(Answer, {where: {userResponseId: In(idsResponse)}})).map(x => x.id)
-    if(idsAnswers.length > 0) await context.manager.delete(Answer, idsAnswers)
-    if(idsResponse.length > 0) await context.manager.delete(UserResponse, idsResponse)
-    await context.manager.delete(User, {id})
+    const idsResponse = (await context.manager.findBy(UserResponse, { userId: id })).map(x => x.id)
+    const idsAnswers = (await context.manager.find(Answer, { where: { userResponseId: In(idsResponse) } })).map(x => x.id)
+    if (idsAnswers.length > 0) await context.manager.delete(Answer, idsAnswers)
+    if (idsResponse.length > 0) await context.manager.delete(UserResponse, idsResponse)
+    await context.manager.delete(User, { id })
   } catch (error) {
-    return res.status(500).json({message: "Unable to delete user"})
+    return res.status(500).json({ message: "Unable to delete user" })
   }
   return res.status(200).send()
 })
 
 //Toggle Block
-app.put("/api/users/:id/block", [param("id").isNumeric()], validation,authorize, checkAdmin, async (req, res) => {
+app.put("/api/users/:id/block", [param("id").isNumeric()], validation, authorize, checkAdmin, async (req, res) => {
   const { id } = req.params
   const repoUser = context.getRepository(User)
-  const user = await repoUser.findOneBy({id})
-  await repoUser.update(id, {isBlocked: !user.isBlocked})
+  const user = await repoUser.findOneBy({ id })
+  await repoUser.update(id, { isBlocked: !user.isBlocked })
   return res.status(200).send()
 })
 
 //Toggle Admin
-app.put("/api/users/:id/admin", [param("id").isNumeric()], validation,authorize, checkAdmin, async (req, res) => {
+app.put("/api/users/:id/admin", [param("id").isNumeric()], validation, authorize, checkAdmin, async (req, res) => {
   const { id } = req.params
   const repoUser = context.getRepository(User)
-  const user = await repoUser.findOneBy({id})
-  await repoUser.update(id, {isAdmin: !user.isAdmin})
+  const user = await repoUser.findOneBy({ id })
+  await repoUser.update(id, { isAdmin: !user.isAdmin })
   return res.status(200).send()
 })
 
@@ -281,8 +283,8 @@ app.put("/api/users/:id/admin", [param("id").isNumeric()], validation,authorize,
 app.get("/api/myquizzes", authorize, async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.find({
-    where: {userId: req.user.id, questions: {visibleAtTable: true}},
-    relations: {questions: true, userResponses: true}
+    where: { userId: req.user.id },
+    relations: { questions: true, userResponses: true }
   })
   return res.status(200).json(quizz)
 })
@@ -291,35 +293,35 @@ app.get("/api/myquizzes", authorize, async (req, res) => {
 app.get("/api/myquizzes/all", authorize, checkAdmin, async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.find({
-    where: {questions: {visibleAtTable: true}},
-    relations: {questions: true, userResponses: true}
+    relations: { questions: true, userResponses: true }
   })
   return res.status(200).json(quizz)
 })
 
-app.get("/api/myquizzes/:id/questions", authorize, async (req, res) => {
-  const { id } = req.params
+//Settings
+app.get("/api/myquizzes/:idQuizz/questions", authorize, async (req, res) => {
+  const { idQuizz } = req.params
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.findOne({
-    order: {questions: {order: "ASC"}},
-    where: {id},
-    relations: {topic: true, quizzTags: true, questions: {lastEditedAdmin: true}}
+    order: { questions: { order: "ASC" } },
+    where: { id: idQuizz },
+    relations: { topic: true, quizzTags: true, questions: { lastEditedAdmin: true } }
   })
   return res.status(200).json(quizz)
 })
 
-
-app.get("/api/myquizzes/:id/results", authorize, async (req, res) => {
-  const { id } = req.params
+//Settings
+app.get("/api/myquizzes/:idQuizz/results", authorize, async (req, res) => {
+  const { idQuizz } = req.params
   const repoResponse = context.getRepository(UserResponse)
   const response = await repoResponse.find({
-    where: {quizzId: id, },
-    relations: {user: true}
+    where: { quizzId: idQuizz, },
+    relations: { user: true }
   })
   return res.status(200).json(response)
 })
 
-
+//Settings
 app.get("/api/myquizzes/:idQuizz/results/:idResponse", [
   param("idQuizz").isNumeric(),
   param("idResponse").isNumeric()
@@ -327,9 +329,9 @@ app.get("/api/myquizzes/:idQuizz/results/:idResponse", [
   const { idQuizz, idResponse } = req.params
   const repoResponse = context.getRepository(UserResponse)
   const response = await repoResponse.findOne({
-    order: {quizz: {questions: {order: "ASC"}}},
+    order: { quizz: { questions: { order: "ASC" } } },
     where: { quizzId: idQuizz, id: idResponse },
-    relations: { quizz: { topic: true, quizzTags: { tag: true }, questions: {lastEditedAdmin: true} }, answers: {lastEditedAdmin: true}, user: true }
+    relations: { quizz: { topic: true, quizzTags: { tag: true }, questions: { lastEditedAdmin: true } }, answers: { lastEditedAdmin: true }, user: true }
   })
   if (response == null) return res.status(404).send();
   const newQuestions = response.quizz.questions.map(x => ({
@@ -340,17 +342,102 @@ app.get("/api/myquizzes/:idQuizz/results/:idResponse", [
   return res.status(200).json(response)
 })
 
-
-app.get("/api/myquizzes/:id/settings", authorize, async (req, res) => {
-  const { id } = req.params
+//Settings
+app.get("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
+  const { idQuizz } = req.params
   const repoQuizz = context.getRepository(Quizz)
   const topicQuizz = context.getRepository(Topic)
   const quizz = await repoQuizz.findOne({
-    where: { id },
-    relations: {quizzTags: {tag: true}, allowedUsers: {user: true}}
+    where: { id: idQuizz },
+    relations: { quizzTags: { tag: true }, allowedUsers: { user: true } }
   })
   const topics = await topicQuizz.find()
-  return res.status(200).json({quizz, topics})
+  return res.status(200).json({ quizz, topics })
+})
+
+//Settings
+app.post("/api/myquizzes/:idQuizz/questions", authorize, async (req, res) => {
+  const { questions, deletedIds } = req.body
+  const { idQuizz } = req.params
+  const repoQuestion = context.getRepository(Question)
+  const repoAnswer = context.getRepository(Answer)
+  if (deletedIds.length > 0) {
+    const answersIds = (await repoAnswer.find({ where: { questionId: In(deletedIds) } })).map(x => x.id)
+    if (answersIds.length > 0) await repoAnswer.delete(answersIds);
+    await repoQuestion.delete(deletedIds)
+  }
+  await repoQuestion.save(questions)
+  return res.status(200).json(questions)
+})
+
+
+app.delete("/api/myquizzes/:idQuizz/results/:idResponse", [
+  param("idQuizz").isNumeric(),
+  param("idResponse").isNumeric()
+], validation, authorize, async (req, res) => {
+  const { idQuizz, idResponse } = req.params
+  const repoAnswer = context.getRepository(Answer)
+  const repoResponse = context.getRepository(UserResponse)
+  const answersIds = (await repoAnswer.find({ where: { userResponseId: idResponse } })).map(x => x.id)
+  if (answersIds.length > 0) await repoAnswer.delete(answersIds);
+  await repoResponse.delete({ id: idResponse })
+  return res.status(200).send()
+})
+
+
+app.post("/api/myquizzes/:idQuizz/updateAnswers", authorize, async (req, res) => {
+  const { answers, deletedIds } = req.body
+  const repoAnswer = context.getRepository(Answer)
+  if (deletedIds.length > 0) await repoAnswer.delete(deletedIds);
+  await repoAnswer.save(answers)
+  return res.status(200).json(answers)
+})
+
+app.delete("/api/myquizzes/:idQuizz", authorize, async (req, res) => {
+  const idQuizz = req.params.idQuizz;
+  const repoAnswer = context.getRepository(Answer)
+  const repoQuestion = context.getRepository(Question)
+  const repoReponse = context.getRepository(UserResponse)
+  const repoQuizzTag = context.getRepository(QuizzTag)
+  const repoQuizz = context.getRepository(Quizz)
+  const repoAllowedUser = context.getRepository(AllowedUser)
+  const question = await repoQuestion.find({where: {quizzId: idQuizz}, relations: {answers: true}})
+  const questionIds = question.map(x => x.id)
+  const answerIds = question.flatMap(x => x.answers.map(answer => answer.id));
+  if(answerIds.length > 0) await repoAnswer.delete(answerIds)
+  if(questionIds.length > 0) await repoQuestion.delete(questionIds)
+  await repoReponse.delete({quizzId: idQuizz})
+  await repoQuizzTag.delete({quizzId: idQuizz})
+  await repoAllowedUser.delete({quizzId: idQuizz})
+  await repoQuizz.delete({id: idQuizz})
+  return res.status(200).send()
+})
+
+app.post("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
+  const { quizz } = req.body
+  const repoQuizz = context.getRepository(Quizz)
+  await repoQuizz.save(quizz)
+  return res.status(200).send()
+})
+
+
+
+app.post("/api/myquizzes/create", authorize, async (req, res) => {
+  const repoQuizz = context.getRepository(Quizz)
+  const quizz1 = {
+    id: 0,
+    title: "Your Quizz",
+    userId: req.user.id,
+    description: "<p>Hello there!, this is your quizz!</p>",
+    descriptionPlain: "Hello there!, this is your quizz!",
+    imageURL: "https://wallaroo.app/images/wallpapers/019.jpg",
+    topicId: 1,
+    accessStatus: AccessStatus.PUBLIC,
+    acceptMultipleAnswers: true,
+    creationDate: new Date(Date.now()),
+  }
+  await repoQuizz.save(quizz1)
+  return res.status(200).json(quizz1)
 })
 
 const port = 8080;
