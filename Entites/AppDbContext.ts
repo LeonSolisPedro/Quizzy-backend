@@ -15,14 +15,14 @@ import { Initial1729465384528 } from "./Migrations/1729465384528-Initial"
 
 const AppDbContext = new DataSource({
   type: "mysql",
-  host: "localhost",
+  host: process.env.HOSTMYSQL ?? "localhost",
   port: 3306,
-  username: "root",
-  password: "",
-  database: "quizzy",
+  username: process.env.USERMYSQL ?? "root",
+  password: process.env.PASSWORD ?? "",
+  database: process.env.DATABASE ?? "quizzy",
   entities: [Question, Quizz, User, Topic, QuizzTag, Tag, UserResponse, Answer, Like, Comment, AllowedUser],
   synchronize: false,
-  logging: true,
+  logging: false,
   migrations: [Initial1729465384528],
 })
 
