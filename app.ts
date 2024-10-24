@@ -429,27 +429,31 @@ app.delete("/api/myquizzes/:idQuizz", authorize, async (req, res) => {
 })
 
 app.post("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
-  const { quizz, tags } = req.body
+  const { quizz, tags, users } = req.body
   const repoQuizz = context.getRepository(Quizz)
   await repoQuizz.save(quizz)
 
-  // Check if there are different tags
-  // By checking if the lenght is different
-  // inside the QuizzTag (N:N) entity
-  const repoTags = context.getRepository(Tag)
-  const repoQuizzTag = context.getRepository(QuizzTag)
-  const idsQuizzTags = (await repoQuizzTag.find({ where: { tagId: In(tags.map(x => x.id)), quizzId: quizz.id } })).map(x => x.id)
   //If there is, remove all of them
   //And add them again
-  if (idsQuizzTags.length !== tags.length || tags.length === 0) {
-    await repoTags.save(tags)
-    await repoQuizzTag.delete({ quizzId: quizz.id })
-    const quizzTag: QuizzTag[] = []
-    for (const [i, tag] of tags.entries()) {
-      quizzTag.push({ id: 0, order: i + 1, quizzId: quizz.id, tagId: tag.id })
-    }
-    await repoQuizzTag.save(quizzTag)
+  const repoTags = context.getRepository(Tag)
+  const repoQuizzTag = context.getRepository(QuizzTag)
+  await repoTags.save(tags)
+  await repoQuizzTag.delete({ quizzId: quizz.id })
+  const quizzTag: QuizzTag[] = []
+  for (const [i, tag] of tags.entries()) {
+    quizzTag.push({ id: 0, order: i + 1, quizzId: quizz.id, tagId: tag.id })
   }
+  await repoQuizzTag.save(quizzTag)
+
+  //If there is, remove all of them
+  //And add them again
+  const repoAllowedUsers = context.getRepository(AllowedUser)
+  await repoAllowedUsers.delete({ quizzId: quizz.id })
+  const allowedUser: AllowedUser[] = []
+  for (const [i, user] of users.entries()) {
+    allowedUser.push({ id: 0, quizzId: quizz.id, userId: user.id, addedDate: new Date() })
+  }
+  await repoAllowedUsers.save(allowedUser)
   return res.status(200).send({ tags })
 })
 
@@ -458,6 +462,17 @@ app.post("/api/myquizzes/:idQuizz/settings/findTags", authorize, async (req, res
   const repoTags = context.getRepository(Tag)
   const tags = await repoTags.findBy({ name: Like(`%${query}%`) })
   return res.status(200).json(tags)
+})
+
+
+app.post("/api/myquizzes/:idQuizz/settings/findUser", authorize, async (req, res) => {
+  const { query } = req.body
+  const repoUser = context.getRepository(User)
+  const users = await repoUser.findBy([
+    { name: Like(`%${query}%`) },
+    { email: Like(`%${query}%`) }
+  ]);
+  return res.status(200).json(users)
 })
 
 
