@@ -198,11 +198,14 @@ app.get("/api/myanswers/:id", [
 //Get the latest quizzes
 app.get("/api/welcome/getLatest", async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
-  const quizz = await repoQuizz.find({
+  let quizz = await repoQuizz.find({
     order: { creationDate: "ASC" },
     relations: { user: true },
     take: 6
   })
+  //Filter by enum
+  //https://stackoverflow.com/a/70157686
+  quizz = quizz.filter(x => x.accessStatus == 0)
   return res.status(200).json(quizz)
 })
 
@@ -212,6 +215,9 @@ app.get("/api/welcome/getPopular", async (req, res) => {
   let quizz = await repoQuizz.find({
     relations: { questions: true, userResponses: true, likes: true }
   })
+  //Filter by enum
+  //https://stackoverflow.com/a/70157686
+  quizz = quizz.filter(x => x.accessStatus == 0)
   //Filter empty responses
   quizz = quizz.filter(x => x.userResponses.length > 0)
   //Sort by the highest
@@ -410,15 +416,15 @@ app.delete("/api/myquizzes/:idQuizz", authorize, async (req, res) => {
   const repoQuizzTag = context.getRepository(QuizzTag)
   const repoQuizz = context.getRepository(Quizz)
   const repoAllowedUser = context.getRepository(AllowedUser)
-  const question = await repoQuestion.find({where: {quizzId: idQuizz}, relations: {answers: true}})
+  const question = await repoQuestion.find({ where: { quizzId: idQuizz }, relations: { answers: true } })
   const questionIds = question.map(x => x.id)
   const answerIds = question.flatMap(x => x.answers.map(answer => answer.id));
-  if(answerIds.length > 0) await repoAnswer.delete(answerIds)
-  if(questionIds.length > 0) await repoQuestion.delete(questionIds)
-  await repoReponse.delete({quizzId: idQuizz})
-  await repoQuizzTag.delete({quizzId: idQuizz})
-  await repoAllowedUser.delete({quizzId: idQuizz})
-  await repoQuizz.delete({id: idQuizz})
+  if (answerIds.length > 0) await repoAnswer.delete(answerIds)
+  if (questionIds.length > 0) await repoQuestion.delete(questionIds)
+  await repoReponse.delete({ quizzId: idQuizz })
+  await repoQuizzTag.delete({ quizzId: idQuizz })
+  await repoAllowedUser.delete({ quizzId: idQuizz })
+  await repoQuizz.delete({ id: idQuizz })
   return res.status(200).send()
 })
 
@@ -435,22 +441,22 @@ app.post("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
   const idsQuizzTags = (await repoQuizzTag.find({ where: { tagId: In(tags.map(x => x.id)), quizzId: quizz.id } })).map(x => x.id)
   //If there is, remove all of them
   //And add them again
-  if(idsQuizzTags.length !== tags.length || tags.length === 0){
+  if (idsQuizzTags.length !== tags.length || tags.length === 0) {
     await repoTags.save(tags)
-    await repoQuizzTag.delete({quizzId: quizz.id})
+    await repoQuizzTag.delete({ quizzId: quizz.id })
     const quizzTag: QuizzTag[] = []
-    for(const [i,tag] of tags.entries()){
-      quizzTag.push({id: 0, order: i + 1, quizzId: quizz.id, tagId: tag.id})
+    for (const [i, tag] of tags.entries()) {
+      quizzTag.push({ id: 0, order: i + 1, quizzId: quizz.id, tagId: tag.id })
     }
     await repoQuizzTag.save(quizzTag)
   }
-  return res.status(200).send({tags})
+  return res.status(200).send({ tags })
 })
 
 app.post("/api/myquizzes/:idQuizz/settings/findTags", authorize, async (req, res) => {
   const { query } = req.body
   const repoTags = context.getRepository(Tag)
-  const tags = await repoTags.findBy({name: Like(`%${query}%`)})
+  const tags = await repoTags.findBy({ name: Like(`%${query}%`) })
   return res.status(200).json(tags)
 })
 
