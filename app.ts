@@ -209,12 +209,16 @@ app.get("/api/welcome/getLatest", async (req, res) => {
 //Get popular quizzes
 app.get("/api/welcome/getPopular", async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
-  const quizz = await repoQuizz.find({
+  let quizz = await repoQuizz.find({
     relations: { questions: true, userResponses: true, likes: true }
   })
+  //Filter empty responses
+  quizz = quizz.filter(x => x.userResponses.length > 0)
+  //Sort by the highest
   quizz.sort((a, b) => {
     return a.userResponses.length < b.userResponses.length ? 1 : -1;
   })
+  //Remove to only 5
   const newQuizz = quizz.slice(0, 4)
   return res.status(200).json(newQuizz)
 })
