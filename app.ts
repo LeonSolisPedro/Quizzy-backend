@@ -13,7 +13,7 @@ import authorize, { checkAdmin } from "./authorize";
 import { AccessStatus } from "./Enums/Enums";
 import { UserResponse } from "./Entites/UserResponse";
 import { Answer } from "./Entites/Answer";
-import { In } from "typeorm";
+import { In, Like } from "typeorm";
 import { Topic } from "./Entites/Topic";
 import { Question } from "./Entites/Question";
 import { QuizzTag } from "./Entites/QuizzTag";
@@ -419,10 +419,35 @@ app.delete("/api/myquizzes/:idQuizz", authorize, async (req, res) => {
 })
 
 app.post("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
-  const { quizz } = req.body
+  const { quizz, tags } = req.body
   const repoQuizz = context.getRepository(Quizz)
   await repoQuizz.save(quizz)
-  return res.status(200).send()
+
+  // Check if there are different tags
+  // By checking if the lenght is different
+  // inside the QuizzTag (N:N) entity
+  const repoTags = context.getRepository(Tag)
+  const repoQuizzTag = context.getRepository(QuizzTag)
+  const idsQuizzTags = (await repoQuizzTag.find({ where: { tagId: In(tags.map(x => x.id)), quizzId: quizz.id } })).map(x => x.id)
+  //If there is, remove all of them
+  //And add them again
+  if(idsQuizzTags.length !== tags.length || tags.length === 0){
+    await repoTags.save(tags)
+    await repoQuizzTag.delete({quizzId: quizz.id})
+    const quizzTag: QuizzTag[] = []
+    for(const [i,tag] of tags.entries()){
+      quizzTag.push({id: 0, order: i + 1, quizzId: quizz.id, tagId: tag.id})
+    }
+    await repoQuizzTag.save(quizzTag)
+  }
+  return res.status(200).send({tags})
+})
+
+app.post("/api/myquizzes/:idQuizz/settings/findTags", authorize, async (req, res) => {
+  const { query } = req.body
+  const repoTags = context.getRepository(Tag)
+  const tags = await repoTags.findBy({name: Like(`%${query}%`)})
+  return res.status(200).json(tags)
 })
 
 
@@ -444,5 +469,7 @@ app.post("/api/myquizzes/create", authorize, async (req, res) => {
   await repoQuizz.save(quizz1)
   return res.status(200).json(quizz1)
 })
+
+app.post("/api/myquizzes/searchTags")
 
 
