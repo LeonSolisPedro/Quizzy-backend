@@ -199,7 +199,7 @@ app.get("/api/myanswers/:id", [
 app.get("/api/welcome/getLatest", async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
   let quizz = await repoQuizz.find({
-    order: { creationDate: "ASC" },
+    order: { creationDate: "DESC" },
     relations: { user: true },
     take: 6
   })
