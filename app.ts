@@ -225,7 +225,7 @@ app.get("/api/welcome/getPopular", async (req, res) => {
     return a.userResponses.length < b.userResponses.length ? 1 : -1;
   })
   //Remove to only 5
-  const newQuizz = quizz.slice(0, 4)
+  const newQuizz = quizz.slice(0, 5)
   return res.status(200).json(newQuizz)
 })
 
