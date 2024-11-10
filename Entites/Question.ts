@@ -10,8 +10,7 @@ export class Question {
   id: number;
 
   @Column({
-    type: 'enum',
-    enum: TypeOfQuestion,
+    type: 'integer',
     default: TypeOfQuestion.SINGLELINE
   })
   typeOfQuestion: TypeOfQuestion;

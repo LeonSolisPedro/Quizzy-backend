@@ -26,7 +26,7 @@ export default abstract class AppDbSeeder {
 
     // Adding user
     const user1: User = {
-      id: 0,
+      id: null,
       name: "Pedro León",
       email: "pedro@wintercr.com",
       password: await bcrypt.hash("pedro@wintercr.com", 10),
@@ -39,14 +39,14 @@ export default abstract class AppDbSeeder {
     await repoUser.save(user1)
 
     //Creating topics
-    const topic1: Topic = { id: 0, name: "Education" }
-    const topic2: Topic = { id: 0, name: "Quizz" }
-    const topic3: Topic = { id: 0, name: "Other" }
+    const topic1: Topic = { id: null, name: "Education" }
+    const topic2: Topic = { id: null, name: "Quizz" }
+    const topic3: Topic = { id: null, name: "Other" }
     await repoTopic.save([topic1, topic2, topic3])
 
     // Adding a quizz
     const quizz1: Quizz = {
-      id: 0,
+      id: null,
       title: "Test Quizz",
       userId: 0,
       user: user1,
@@ -62,18 +62,18 @@ export default abstract class AppDbSeeder {
     await repoQuizz.save(quizz1)
 
     //Creating tags
-    const tag1: Tag = { id: 0, name: "Test" }
-    const tag2: Tag = { id: 0, name: "Debugging" }
+    const tag1: Tag = { id: null, name: "Test" }
+    const tag2: Tag = { id: null, name: "Debugging" }
     await repoTag.save([tag1, tag2])
 
     //Link tags with quizzes (Many-to-Many)
-    const quizzTag1: QuizzTag = { id: 0, quizzId: 0,quizz: quizz1, tagId: 0,tag: tag1, order: 1 };
-    const quizzTag2: QuizzTag = { id: 0, quizzId: 0,quizz: quizz1, tagId: 0,tag: tag2, order: 2 };
+    const quizzTag1: QuizzTag = { id: null, quizzId: 0,quizz: quizz1, tagId: 0,tag: tag1, order: 1 };
+    const quizzTag2: QuizzTag = { id: null, quizzId: 0,quizz: quizz1, tagId: 0,tag: tag2, order: 2 };
     await repoQuizzTag.save([quizzTag1, quizzTag2])
 
     //Creating questions
     const question1: Question =  {
-      id: 0,
+      id: null,
       typeOfQuestion: TypeOfQuestion.SINGLELINE,
       title: "Question 1",
       description: "Say sunday",
@@ -84,7 +84,7 @@ export default abstract class AppDbSeeder {
     }
 
     const question2: Question =  {
-      id: 0,
+      id: null,
       typeOfQuestion: TypeOfQuestion.SINGLELINE,
       title: "Question 2",
       description: "Say monday",

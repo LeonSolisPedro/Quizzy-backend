@@ -8,7 +8,7 @@ export class UserResponse {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   responseDate: Date;
 
   @Column()

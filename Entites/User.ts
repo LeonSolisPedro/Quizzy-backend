@@ -25,15 +25,13 @@ export class User {
   URLImage: string;
 
   @Column({
-    type: 'enum',
-    enum: SettingDarkMode,
+    type: 'integer',
     default: SettingDarkMode.AUTO
   })
   settingDarkMode: SettingDarkMode
 
   @Column({
-    type: 'enum',
-    enum: Language,
+    type: 'integer',
     default: Language.ENG
   })
   preferredLanguage: Language

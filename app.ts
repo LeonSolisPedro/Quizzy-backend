@@ -70,7 +70,7 @@ app.post('/api/register', [
   body('URLImage').notEmpty(),
 ], validation, async (req, res) => {
   const hpassword = await bcrypt.hash(req.body.password, 10);
-  const user = { ...req.body, password: hpassword, id: 0, isAdmin: false, isBlocked: false }
+  const user = { ...req.body, password: hpassword, id: null, isAdmin: false, isBlocked: false }
   try {
     const repoUser = context.getRepository(User)
     await repoUser.save(user)
@@ -105,6 +105,7 @@ app.get("/api/responding/getQuizz/:id", [
   const repoQuizz = context.getRepository(Quizz)
   const quizz = await repoQuizz.findOne({
     where: { id },
+    order: { questions: { order: "ASC" } },
     relations: { topic: true, quizzTags: { tag: true }, questions: true, allowedUsers: true }
   })
   const token = req.headers['authorization']?.split(' ')[1];
@@ -133,7 +134,7 @@ app.post("/api/responding/quizz/:id", [
     const repoResponse = context.getRepository(UserResponse)
     const repoAnswer = context.getRepository(Answer)
     const userResponse: UserResponse = {
-      id: 0,
+      id: null,
       responseDate: new Date(),
       userId: req.user.id,
       quizzId: quizz.id,
@@ -441,7 +442,7 @@ app.post("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
   await repoQuizzTag.delete({ quizzId: quizz.id })
   const quizzTag: QuizzTag[] = []
   for (const [i, tag] of tags.entries()) {
-    quizzTag.push({ id: 0, order: i + 1, quizzId: quizz.id, tagId: tag.id })
+    quizzTag.push({ id: null, order: i + 1, quizzId: quizz.id, tagId: tag.id })
   }
   await repoQuizzTag.save(quizzTag)
 
@@ -451,7 +452,7 @@ app.post("/api/myquizzes/:idQuizz/settings", authorize, async (req, res) => {
   await repoAllowedUsers.delete({ quizzId: quizz.id })
   const allowedUser: AllowedUser[] = []
   for (const [i, user] of users.entries()) {
-    allowedUser.push({ id: 0, quizzId: quizz.id, userId: user.id, addedDate: new Date() })
+    allowedUser.push({ id: null, quizzId: quizz.id, userId: user.id, addedDate: new Date() })
   }
   await repoAllowedUsers.save(allowedUser)
   return res.status(200).send({ tags })
@@ -480,7 +481,7 @@ app.post("/api/myquizzes/:idQuizz/settings/findUser", authorize, async (req, res
 app.post("/api/myquizzes/create", authorize, async (req, res) => {
   const repoQuizz = context.getRepository(Quizz)
   const quizz1 = {
-    id: 0,
+    id: null,
     title: "Your Quizz",
     userId: req.user.id,
     description: "<p>Hello there!, this is your quizz!</p>",

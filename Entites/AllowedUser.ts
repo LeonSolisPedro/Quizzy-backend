@@ -19,6 +19,6 @@ export class AllowedUser {
   @ManyToOne(() => User)
   user?: User
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   addedDate: Date;
 }

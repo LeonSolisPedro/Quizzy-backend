@@ -14,8 +14,8 @@
     "express": "^4.21.0",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.3",
     "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2",
     "typeorm": "^0.3.20",
     "typescript": "^5.6.2"

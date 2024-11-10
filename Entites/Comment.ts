@@ -22,6 +22,6 @@ export class Comment {
   @Column()
   comment: string
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   commentDate: Date;
 }

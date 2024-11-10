@@ -45,8 +45,7 @@ export class Quizz {
   topic?: Topic
 
   @Column({
-    type: 'enum',
-    enum: AccessStatus,
+    type: 'integer',
     default: AccessStatus.PUBLIC
   })
   accessStatus: AccessStatus
@@ -72,6 +71,6 @@ export class Quizz {
   @OneToMany(() => AllowedUser, (allowedUser) => allowedUser.quizz)
   allowedUsers?: AllowedUser[]
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   creationDate: Date;
 }
